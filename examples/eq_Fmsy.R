@@ -149,7 +149,7 @@ data$vul <- 1 / (1 + exp(-sigma_vul * (la - vul50))) # for length
 # vul <- 1 / (1 + exp(-sigma_vul * (ages - vul50))) # for ages
 
 get_eq_yield <- function(F, cr) {
-  getall(data)
+  getAll(data, warn = FALSE)
 
   ## Recruitment parameters
   Ro <- 1 # recruitment scaler
@@ -181,7 +181,7 @@ get_eq_yield <- function(F, cr) {
 # Create a tape for the function once
 # find Fmsy based on a known compensation ratio
 cr <- 7
-tape <- MakeTape(function(F) get_fmsy(F, cr), numeric(1))
+tape <- MakeTape(function(F) get_eq_yield(F, cr), numeric(1))
 jacfun <- tape$jacfun()
 # uniroot - find Fmsy
 root <- uniroot(function(x) jacfun(x), c(1e-3, 2))$root
