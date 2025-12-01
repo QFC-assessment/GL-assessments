@@ -1,5 +1,6 @@
 #' @title read_table_nowarn
 #' function to supress incomplete final lines warning
+#' @export
 read_table_nowarn <- function(...) {
   try_catch <- function(expr) {
     W <- NULL
@@ -25,6 +26,7 @@ read_table_nowarn <- function(...) {
 #' fourth line is data type
 #'   - 1: matrix
 #'   - 2: vector
+#' @export
 read_data <- function(file) {
   type <- scan(file, skip = 1, n = 1, quiet = TRUE)
   if (type == 1) { # matrix
