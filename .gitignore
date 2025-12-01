@@ -50,10 +50,6 @@ vignettes/*.pdf
 *.exe
 
 #
-.Rbuildignore
-DESCRIPTION
-NAMESPACE
-NEWS.md
 docs/
 
 extra/
