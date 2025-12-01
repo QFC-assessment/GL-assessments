@@ -55,7 +55,8 @@ read_data <- function(file) {
 #' @title setup_data()
 #' function to set up data for model
 setup_data <- function(data_list,
-                       fishery_type,
+                       type,
+                       fishery,
                        maturity_at_age = NULL,
                        weight_at_age = NULL,
                        natural_mortality = NULL) {
@@ -63,7 +64,7 @@ setup_data <- function(data_list,
   n_data <- length(data_list)
   for (i in 1:n_data) {
     data_dim <- dim(data_list[[i]])
-    if(data_dim[2] > 1) { # matrices
+    if (data_dim[2] > 1) { # matrices
       d <- data.frame(data_list[[i]], check.names = FALSE)
       obs[[i]] <- reshape(
         data = d,
@@ -76,25 +77,25 @@ setup_data <- function(data_list,
         idvar = "year"
       )
       rownames(obs[[i]]) <- NULL
-      obs[[i]]$type <- fishery_type$type[i]
-      obs[[i]]$fishery <- fishery_type$fishery[i]
+      obs[[i]]$type <- type[i]
+      obs[[i]]$fishery <- fishery[i]
       obs[[i]]$logobs <- log(obs[[i]]$obs)
       obs[[i]] <- obs[[i]][, c("obs", "logobs", "year", "age", "type", "fishery")]
-    } else if(data_dim[2] == 1) { # vectors
+    } else if (data_dim[2] == 1) { # vectors
       obs[[i]] <- data.frame(data_list[[i]])
       names(obs[[i]]) <- "obs"
       obs[[i]]$year <- rownames(data_list[[i]])
       rownames(obs[[i]]) <- NULL
       obs[[i]]$age <- NA
-      obs[[i]]$type <- fishery_type$type[i]
-      obs[[i]]$fishery <- fishery_type$fishery[i]
+      obs[[i]]$type <- type[i]
+      obs[[i]]$fishery <- fishery[i]
       obs[[i]]$logobs <- log(obs[[i]]$obs)
     }
   }
 
   # combine fishery and survey datasets
   obs_all <- do.call(rbind, obs)
-  for(i in 1:ncol(obs_all)) {
+  for (i in 1:ncol(obs_all)) {
     obs_all[, i] <- as.numeric(obs_all[, i])
   }
 

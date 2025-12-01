@@ -7,7 +7,8 @@ function to set up data for model}
 \usage{
 setup_data(
   data_list,
-  fishery_type,
+  type,
+  fishery,
   maturity_at_age = NULL,
   weight_at_age = NULL,
   natural_mortality = NULL
