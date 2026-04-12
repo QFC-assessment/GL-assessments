@@ -6,6 +6,7 @@
 \usage{
 rtmb_template(
   name,
+  wd = NULL,
   random = NULL,
   control = NULL,
   newton_steps = FALSE,

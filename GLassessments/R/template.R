@@ -10,50 +10,67 @@ indent <- function(n = 1) {
 #' @export
 rtmb_template <- function(
     name,
+    wd = NULL,
     random = NULL,
     control = NULL,
     newton_steps = FALSE,
     jitter_test = FALSE,
     likeprof = FALSE,
     mcmc = FALSE) {
-  ofile <- paste0(name, ".R")
+  if(is.null(wd)) {
+    ofile <- paste0(name, ".R")
+  } else if (!is.null(wd)) {
+    ofile <- file.path(wd, paste0(name, ".R"))
+  }
 
   # clean environment
   olin <- c(
+    "# clean environment",
     "rm(list = ls())",
     "gc()"
   )
 
   # load RTMB
   olin <- c(
-    olin, "# packages",
+    olin, "",
+    "# packages",
     "library(RTMB)"
+  )
+
+  # data and parameters lists
+  olin <- c(
+    olin, "",
+    "# data and parameters lists",
+    "dat <- list()",
+    "pars <- list()"
   )
 
   # function
   olin <- c(
     olin, "",
     "# function",
-    "f <- function(par) {",
-    paste0(indent(1), "getAll(data, par)"),
+    "f <- function(dat, pars) {",
+    paste0(indent(1), "getAll(dat, pars)"),
     "",
     paste0(indent(1), "return(jnll)"),
-    "}", ""
+    "}"
   )
 
   # optimizer
   # random effect
   if (!is.null(random)) {
     olin <- c(
-      olin,
-      paste0("obj <- MakeADFun(f, par, random = ", deparse(random), ")"),
+      olin, "",
+      "# run optimizer",
+      "cmb <- function(f, d) function(p) f(d, p)",
+      paste0("obj <- MakeADFun(cmb(f, dat), pars, random = ", deparse(random), ")"),
       "# obj$fn()",
       "# obj$gr()"
     )
   } else {
     olin <- c(
-      olin,
-      paste0("obj <- MakeADFun(f, par)")
+      olin, "",
+      paste0("obj <- MakeADFun(f, pars)")
     )
   }
   if (!is.null(control)) {
@@ -71,7 +88,7 @@ rtmb_template <- function(
     )
     olin <- c(
       olin,
-      "opt <- nlminb(obj$par, obj$fn, obj$gr,",
+      "opt <- nlminb(obj$pars, obj$fn, obj$gr,",
       paste0(indent(1), control_text),
       ")",
       "# opt"
@@ -79,59 +96,28 @@ rtmb_template <- function(
   } else {
     olin <- c(
       olin,
-      "opt <- nlminb(obj$par, obj$fn, obj$gr)"
+      "opt <- nlminb(obj$pars, obj$fn, obj$gr)"
     )
   }
 
   # newton steps
-  if(newton_steps == TRUE) {
-    olin <- c(
-      olin,
-      "",
-      "# newton steps",
-      "for (n in 1:3) {",
-      "  g <- as.numeric(obj$gr(opt$par))",
-      "  h <- stats::optimHess(opt$par, obj$fn, obj$gr)",
-      "  new_par <- opt$par - solve(h, g)",
-      "  opt <- nlminb(new_par, obj$fn, obj$gr,",
-      "    control = list(eval.max = 1e4, iter.max = 1e4)",
-      "  )",
-      "}",
-      "# opt"
-    )
+  if (newton_steps == TRUE) {
+    olin <- c(olin, newton_steps(print_console = FALSE))
   }
 
   # jitter test
-  if(jitter_test == TRUE) {
-    olin <- c(
-      olin,
-      "",
-      "# jitter test",
-      "doone <- function() {",
-      "  fit <- nlminb(opt$par + rnorm(length(opt$par), sd = 0.1),",
-      "    obj$fn, obj$gr,",
-      "    control = list(eval.max = 5e3, iter.max = 5e3)",
-      "  )",
-      "  c(fit$par, \"convergence\" = fit$convergence)",
-      "}",
-      "set.seed(123456)",
-      "jit <- replicate(100, doone())",
-      "boxplot(t(jit))"
-    )
+  if (jitter_test == TRUE) {
+    olin <- c(olin, jitter_test(print_console = FALSE))
   }
-  
+
   # likelihood profile
-  if(likeprof == TRUE) {
-    olin <- c(
-      olin,
-      "",
-      "# likelihood profile",
-      "names(obj$par)",
-      "pro <- TMB:::tmbprofile(obj, name = 1)",
-      "plot(pro, ylab = \"NLL\", xlab = \"\")",
-      "abline(v = opt$par[1], col = \"red\", lty = 2, lwd = 2.5)",
-      "confint(pro)"
-    )
+  if (likeprof == TRUE) {
+    olin <- c(olin, likelihood_profile(print_console = FALSE))
+  }
+
+  # MCMC
+  if (mcmc == TRUE) {
+    olin <- c(olin, mcmc_stan(print_console = FALSE, random = random))
   }
 
   # standard errors
@@ -154,4 +140,112 @@ rtmb_template <- function(
     "# plrsd <- as.list(sd_rep, 'Std', report = TRUE)"
   )
   writeLines(olin, ofile)
+  }
+
+
+#' @title newton_steps
+#'
+#' @export
+newton_steps <- function(print_console = TRUE) {
+  olin <- c(
+    "",
+    "# newton steps",
+    "for (n in 1:3) {",
+    paste0(indent(1), "g <- as.numeric(obj$gr(opt$pars))"),
+    paste0(indent(1), "h <- numDeriv::jacobian(obj$gr, opt$pars)"),
+    paste0(indent(1), "new_pars <- opt$pars - solve(h, g)"),
+    paste0(indent(1), "opt <- nlminb(new_pars, obj$fn, obj$gr,"),
+    paste0(indent(2), "control = list(eval.max = 1e4, iter.max = 1e4)"),
+    paste0(indent(1), ")"),
+    "}",
+    "# opt"
+  )
+  if (print_console == TRUE) {
+    writeLines(olin)
+  } else {
+    return(olin)
+  }
+}
+
+
+#' @title jitter_test
+#'
+#' @export
+jitter_test <- function(print_console = TRUE) {
+  olin <- c(
+    "",
+    "# jitter test",
+    "doone <- function() {",
+    paste0(indent(1), "fit <- nlminb(opt$pars + rnorm(length(opt$pars), sd = 0.1),"),
+    paste0(indent(2), "obj$fn, obj$gr,"),
+    paste0(indent(2), "control = list(eval.max = 5e3, iter.max = 5e3)"),
+    paste0(indent(1), ")"),
+    paste0(indent(1), "c(fit$pars, \"convergence\" = fit$convergence)"),
+    "}",
+    "set.seed(123456)",
+    "jit <- replicate(100, doone())",
+    "boxplot(t(jit))"
+  )
+  if (print_console == TRUE) {
+    writeLines(olin)
+  } else {
+    return(olin)
+  }
+}
+
+
+#' @title likelihood_profile
+#'
+#' @export
+likelihood_profile <- function(print_console = TRUE) {
+  olin <- c(
+    "",
+    "# likelihood profile",
+    "names(obj$pars)",
+    "idx <- 1",
+    "pro <- TMB:::tmbprofile(obj, name = idx)",
+    "plot(pro, ylab = \"NLL\", xlab = \"\")",
+    "abline(v = opt$pars[idx], col = \"red\", lty = 2, lwd = 2.5)",
+    "confint(pro)"
+  )
+  if (print_console == TRUE) {
+    writeLines(olin)
+  } else {
+    return(olin)
+  }
+}
+
+#' @title mcmc_stan
+#'
+#' @export
+mcmc_stan <- function(print_console = TRUE, random = NULL) {
+  olin <- c(
+    "",
+    "# MCMC",
+    "library(tmbstan)",
+    "fitmcmc <- tmbstan(obj, chains = 1,",
+    paste0(indent(1), "iter = 1e4,")
+  )
+  if (!is.null(random)) {
+    olin <- c(
+      olin,
+      paste0(indent(1), "init = list(c(opt$pars, sd_rep$pars.random))"),
+      ")",
+      "mc <- extract(fitmcmc, pars = names(c(opt$pars, sd_rep$pars.random)),",
+      paste0(indent(1), "inc_warmup = TRUE, permuted = FALSE)")
+    )
+  } else if (is.null(random)) {
+    olin <- c(
+      olin,
+      "  init = list(opt$pars)",
+      ")",
+      "mc <- extract(fitmcmc, pars = names(c(opt$pars)),",
+      paste0(indent(1), "inc_warmup = TRUE, permuted = FALSE)")
+    )
+  }
+  if (print_console == TRUE) {
+    writeLines(olin)
+  } else {
+    return(olin)
+  }
 }
