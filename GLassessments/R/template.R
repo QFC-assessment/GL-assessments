@@ -88,7 +88,7 @@ rtmb_template <- function(
     )
     olin <- c(
       olin,
-      "opt <- nlminb(obj$pars, obj$fn, obj$gr,",
+      "opt <- nlminb(obj$par, obj$fn, obj$gr,",
       paste0(indent(1), control_text),
       ")",
       "# opt"
@@ -96,7 +96,7 @@ rtmb_template <- function(
   } else {
     olin <- c(
       olin,
-      "opt <- nlminb(obj$pars, obj$fn, obj$gr)"
+      "opt <- nlminb(obj$par, obj$fn, obj$gr)"
     )
   }
 
@@ -151,10 +151,10 @@ newton_steps <- function(print_console = TRUE) {
     "",
     "# newton steps",
     "for (n in 1:3) {",
-    paste0(indent(1), "g <- as.numeric(obj$gr(opt$pars))"),
-    paste0(indent(1), "h <- numDeriv::jacobian(obj$gr, opt$pars)"),
-    paste0(indent(1), "new_pars <- opt$pars - solve(h, g)"),
-    paste0(indent(1), "opt <- nlminb(new_pars, obj$fn, obj$gr,"),
+    paste0(indent(1), "g <- as.numeric(obj$gr(opt$par))"),
+    paste0(indent(1), "h <- numDeriv::jacobian(obj$gr, opt$par)"),
+    paste0(indent(1), "new_par <- opt$par - solve(h, g)"),
+    paste0(indent(1), "opt <- nlminb(new_par, obj$fn, obj$gr,"),
     paste0(indent(2), "control = list(eval.max = 1e4, iter.max = 1e4)"),
     paste0(indent(1), ")"),
     "}",
@@ -176,11 +176,11 @@ jitter_test <- function(print_console = TRUE) {
     "",
     "# jitter test",
     "doone <- function() {",
-    paste0(indent(1), "fit <- nlminb(opt$pars + rnorm(length(opt$pars), sd = 0.1),"),
+    paste0(indent(1), "fit <- nlminb(opt$par + rnorm(length(opt$par), sd = 0.1),"),
     paste0(indent(2), "obj$fn, obj$gr,"),
     paste0(indent(2), "control = list(eval.max = 5e3, iter.max = 5e3)"),
     paste0(indent(1), ")"),
-    paste0(indent(1), "c(fit$pars, \"convergence\" = fit$convergence)"),
+    paste0(indent(1), "c(fit$par, \"convergence\" = fit$convergence)"),
     "}",
     "set.seed(123456)",
     "jit <- replicate(100, doone())",
@@ -201,11 +201,11 @@ likelihood_profile <- function(print_console = TRUE) {
   olin <- c(
     "",
     "# likelihood profile",
-    "names(obj$pars)",
+    "names(obj$par)",
     "idx <- 1",
     "pro <- TMB:::tmbprofile(obj, name = idx)",
     "plot(pro, ylab = \"NLL\", xlab = \"\")",
-    "abline(v = opt$pars[idx], col = \"red\", lty = 2, lwd = 2.5)",
+    "abline(v = opt$par[idx], col = \"red\", lty = 2, lwd = 2.5)",
     "confint(pro)"
   )
   if (print_console == TRUE) {
@@ -229,17 +229,17 @@ mcmc_stan <- function(print_console = TRUE, random = NULL) {
   if (!is.null(random)) {
     olin <- c(
       olin,
-      paste0(indent(1), "init = list(c(opt$pars, sd_rep$pars.random))"),
+      paste0(indent(1), "init = list(c(opt$par, sd_rep$par.random))"),
       ")",
-      "mc <- extract(fitmcmc, pars = names(c(opt$pars, sd_rep$pars.random)),",
+      "mc <- extract(fitmcmc, par = names(c(opt$par, sd_rep$par.random)),",
       paste0(indent(1), "inc_warmup = TRUE, permuted = FALSE)")
     )
   } else if (is.null(random)) {
     olin <- c(
       olin,
-      "  init = list(opt$pars)",
+      "  init = list(opt$par)",
       ")",
-      "mc <- extract(fitmcmc, pars = names(c(opt$pars)),",
+      "mc <- extract(fitmcmc, par = names(c(opt$par)),",
       paste0(indent(1), "inc_warmup = TRUE, permuted = FALSE)")
     )
   }

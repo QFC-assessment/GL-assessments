@@ -93,8 +93,6 @@ age_year_plot <- function(
     labels = c(min(years_unique), max(years_unique)),
     las = 1, tick = FALSE
   )
-  
-  par(mfrow = c(1, 1), oma = c(0, 0, 0, 0))
 }
 
 
@@ -120,8 +118,6 @@ year_plot <- function(
     col = "black", # default line color
     lwd = 2 # optional: line width
   )
-
-  par(mfrow = c(1, 1), oma = c(0, 0, 0, 0))
 }
 
 
@@ -168,8 +164,6 @@ year_age_b_plot <- function(
     title = if (is.null(legend_title)) "" else legend_title,
     bty = "n" # no box
   )
-
-  par(mfrow = c(1, 1), oma = c(0, 0, 0, 0))
 }
 
 
@@ -221,8 +215,6 @@ bubble_plot <- function(
   for (i in 1:length(cohort_years)) {
     abline(-cohort_years[i], 1, lty = 2, col = "grey80")
   }
-
-  par(mfrow = c(1, 1), oma = c(0, 0, 0, 0))
 }
 
 
@@ -263,9 +255,7 @@ effort_F_plot <- function(
   # Add text labels at each point
   text(ef_df$eff, ef_df$F, labels = ef_df$label)
 
-  abline(a = 0, b = 1, lty = 2, col = "grey50")
-  
-  par(mfrow = c(1, 1), oma = c(0, 0, 0, 0))
+  abline(a = 0, b = 1, lty = 2, col = "grey50")  
 }
 
 
@@ -309,8 +299,6 @@ uncertainty_plot <- function(
   # Draw dashed lines for lower and upper bounds
   lines(years, vec_sd_low, col = "red", lty = 2)
   lines(years, vec_sd_high, col = "red", lty = 2)
-
-  par(mfrow = c(1, 1), oma = c(0, 0, 0, 0))
 }
 
 
@@ -348,8 +336,6 @@ fit_vs_data_year <- function(
     lwd = c(NA, 2),
     bty = "n"
   )
-
-  par(mfrow = c(1, 1), oma = c(0, 0, 0, 0))
 }
 
 
@@ -406,6 +392,4 @@ fit_vs_data_pa <- function(
       }
     }
   }
-
-  par(mfrow = c(1, 1), oma = c(0, 0, 0, 0))
 }

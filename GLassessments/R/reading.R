@@ -54,6 +54,7 @@ read_data <- function(file) {
 
 #' @title setup_data()
 #' function to set up data for model
+#' @export
 setup_data <- function(data_list,
                        type,
                        fishery,
