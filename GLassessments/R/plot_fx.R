@@ -41,6 +41,10 @@ age_year_plot <- function(
     ages,
     title = NULL,
     y_lab = NULL) {
+  # save and restore par on exit
+  old_par <- par(no.readonly = TRUE)
+  on.exit(par(old_par))
+  
   # change margins
   par(mar = c(4, 4, 3, 1), oma = c(0.5, 0.5, 0.5, 6))
 
@@ -74,6 +78,8 @@ age_year_plot <- function(
     )
   }
 
+  grid()
+
   # add legend
   usr <- par("usr")
   par(xpd = NA)
@@ -106,18 +112,19 @@ year_plot <- function(
     title = NULL,
     y_lab = NULL) {
   # Setup the plot
-  par(mfrow = c(1, 1), mar = c(4, 4, 3, 1))
   plot(
     x = years,
     y = vec,
-    type = "l", # line plot
+    type = "l",
     xlab = "Years",
     ylab = if (is.null(y_lab)) "" else y_lab,
     main = if (is.null(title)) "" else title,
     ylim = c(y_min, y_max),
-    col = "black", # default line color
-    lwd = 2 # optional: line width
+    col = "black",
+    lwd = 2
   )
+
+  grid()
 }
 
 
@@ -131,6 +138,10 @@ year_age_b_plot <- function(
     y_lab = NULL,
     legend = FALSE,
     legend_title = NULL) {
+  # save and restore par on exit
+  old_par <- par(no.readonly = TRUE)
+  on.exit(par(old_par))
+
   # change margins
   par(mar = c(4, 4, 3, 1), oma = c(0.5, 0.5, 0.5, 6))
 
@@ -152,6 +163,8 @@ year_age_b_plot <- function(
     lines(years, yvals, col = cols[i], type = "b", pch = "")
     text(years, yvals, labels = ages[i], col = cols[i])
   }
+
+  grid()
 
   # Add legend in right margin
   par(xpd = NA)
@@ -251,11 +264,11 @@ effort_F_plot <- function(
     ylab = if (is.null(y_lab)) "" else y_lab,
     main = if (is.null(title)) "" else title
   )
-
   # Add text labels at each point
   text(ef_df$eff, ef_df$F, labels = ef_df$label)
-
   abline(a = 0, b = 1, lty = 2, col = "grey50")  
+  
+  grid()
 }
 
 
@@ -299,6 +312,8 @@ uncertainty_plot <- function(
   # Draw dashed lines for lower and upper bounds
   lines(years, vec_sd_low, col = "red", lty = 2)
   lines(years, vec_sd_high, col = "red", lty = 2)
+
+  grid()
 }
 
 
@@ -327,6 +342,8 @@ fit_vs_data_year <- function(
   # Add data points
   points(years, data, pch = 16, col = "black")
 
+  grid()
+
   # Add legend
   legend("topright",
     legend = c("Data", "Fit"),
@@ -348,6 +365,10 @@ fit_vs_data_pa <- function(
     years,
     ages,
     title = NULL) {
+  # save and restore par on exit
+  old_par <- par(no.readonly = TRUE)
+  on.exit(par(old_par))
+
   # Convert matrices to data frames
   data <- as.data.frame(data)
   fit <- as.data.frame(fit)
@@ -362,8 +383,7 @@ fit_vs_data_pa <- function(
 
   # Setup plotting layout: one row per year, or adjust
   n_years <- length(years)
-  old_par <- par(no.readonly = TRUE)
-  on.exit(par(old_par))
+  
   par(mfrow = c(3, 3), mar = c(4, 4, 3, 1))
 
   # Loop over each year to create “facets”
@@ -391,5 +411,6 @@ fit_vs_data_pa <- function(
         mtext(title, side = 3, line = 1.5, cex = 1.25, font = 2)
       }
     }
+    grid()
   }
 }
