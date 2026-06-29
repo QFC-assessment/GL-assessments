@@ -181,6 +181,7 @@ year_age_b_plot <- function(
 
 
 #' @title bubble_plot
+#' @export
 bubble_plot <- function(
     pa,
     years,

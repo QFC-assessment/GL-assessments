@@ -2,6 +2,7 @@
 
 export(.melt_df)
 export(age_year_plot)
+export(bubble_plot)
 export(cmb)
 export(ddirmultinom)
 export(effort_F_plot)
