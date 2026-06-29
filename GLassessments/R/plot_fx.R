@@ -204,7 +204,7 @@ bubble_plot <- function(
   n <- length(x)
   col_res <- rep("grey40", n)
   bg_open <- gray(0.95, 0.3)
-  cex_res <- abs(z) * bubble_size
+  cex_res <- sqrt(abs(z)) * bubble_size
   pch_res <- rep(16, n)
   bg_res <- rep(bg_open, n)
   bg_res[z < 0] <- "grey80"
