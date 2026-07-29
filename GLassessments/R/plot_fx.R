@@ -168,9 +168,13 @@ year_age_b_plot <- function(
 
   # Add legend in right margin
   par(xpd = NA)
+  x_inner <- grconvertX(1, from = "nic", to = "user") # right edge of the inner region (inside oma)
+  x_dev <- grconvertX(1, from = "ndc", to = "user") # right edge of the device
+  x_leg <- (x_inner + x_dev) / 2 # horizontal center of the right outer margin
+  y_leg <- grconvertY(0.5, from = "npc", to = "user") # vertical center of the plot
   legend(
-    "right",
-    inset = c(-0.18, 0),
+    x_leg, y_leg,
+    xjust = 0.5, yjust = 0.5,
     legend = ages,
     col = cols,
     lty = 1,
